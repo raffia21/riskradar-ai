@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title> AI-Powered Real-Time Public Safety & Risk Mapping System</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+  <style>
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+
+    .controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: white;
+      padding: 10px;
+      border-radius: 10px;
+      z-index: 1000;
+    }
+
+    button {
+      margin: 5px;
+      padding: 8px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .high { background: red; color: white; }
+    .moderate { background: orange; color: white; }
+    .safe { background: green; color: white; }
+  </style>
+</head>
+
+<body>
+
+<div class="controls">
+  <button class="high" onclick="addZone('high')">High Risk</button>
+  <button class="moderate" onclick="addZone('moderate')">Moderate</button>
+  <button class="safe" onclick="addZone('safe')">Safe</button>
+</div>
+
+<div id="map"></div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+  // Initialize map (Chennai)
+  var map = L.map('map').setView([13.0827, 80.2707], 13);
+
+  // OpenStreetMap layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+
+  // Add zones
+  function addZone(type) {
+    var center = map.getCenter();
+
+    let color;
+    if (type === "high") color = "red";
+    else if (type === "moderate") color = "orange";
+    else color = "green";
+
+    L.circle([center.lat, center.lng], {
+      color: color,
+      fillColor: color,
+      fillOpacity: 0.4,
+      radius: 500
+    }).addTo(map);
+
+    voiceAlert(type);
+  }
+
+  // Voice alert
+  function voiceAlert(type) {
+    let message = "";
+
+    if (type === "high") message = "Warning! You are in a high risk zone";
+    else if (type === "moderate") message = "Caution! Moderate risk area";
+    else message = "You are in a safe zone";
+
+    const speech = new SpeechSynthesisUtterance(message);
+    speechSynthesis.speak(speech);
+  }
+
+  // User location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      var userLat = position.coords.latitude;
+      var userLng = position.coords.longitude;
+
+      L.marker([userLat, userLng]).addTo(map)
+        .bindPopup("You are here")
+        .openPopup();
+
+      map.setView([userLat, userLng], 14);
+    });
+  }
+</script>
+
+</body>
+</html>
